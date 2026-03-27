@@ -27,7 +27,6 @@ enum IntoColorError {
     IntConversion,
 }
 
-// I AM NOT DONE
 
 // Your task is to complete this implementation and return an Ok result of inner
 // type Color. You need to create an implementation for a tuple of three
@@ -37,27 +36,40 @@ enum IntoColorError {
 // time, but the slice implementation needs to check the slice length! Also note
 // that correct RGB color values must be integers in the 0..=255 range.
 
-// Tuple implementation
 impl TryFrom<(i16, i16, i16)> for Color {
     type Error = IntoColorError;
     fn try_from(tuple: (i16, i16, i16)) -> Result<Self, Self::Error> {
+        let (r, g, b) = tuple;
+        // 检查每个值是否在 0~255 之间
+        let red = u8::try_from(r).map_err(|_| IntoColorError::IntConversion)?;
+        let green = u8::try_from(g).map_err(|_| IntoColorError::IntConversion)?;
+        let blue = u8::try_from(b).map_err(|_| IntoColorError::IntConversion)?;
+        // 全部合法，返回Color
+        Ok(Color { red, green, blue })
     }
 }
 
-// Array implementation
+// 2. 数组转换
 impl TryFrom<[i16; 3]> for Color {
     type Error = IntoColorError;
     fn try_from(arr: [i16; 3]) -> Result<Self, Self::Error> {
+        // 直接把数组当成元组调用上面的实现
+        Self::try_from((arr[0], arr[1], arr[2]))
     }
 }
 
-// Slice implementation
+// 3. 切片转换
 impl TryFrom<&[i16]> for Color {
     type Error = IntoColorError;
     fn try_from(slice: &[i16]) -> Result<Self, Self::Error> {
+        // 第一步：检查长度必须是3
+        if slice.len() != 3 {
+            return Err(IntoColorError::BadLen);
+        }
+        // 长度合法 → 转成数组再转换
+        Self::try_from([slice[0], slice[1], slice[2]])
     }
 }
-
 fn main() {
     // Use the `try_from` function
     let c1 = Color::try_from((183, 65, 14));
